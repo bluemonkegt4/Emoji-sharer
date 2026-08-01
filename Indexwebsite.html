@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Emoji Sharer</title>
+<style>
+body { font-family: sans-serif; text-align: center; background: #f4f4f9; padding: 20px; }
+#search { padding: 12px; width: 80%; max-width: 400px; font-size: 16px; border-radius: 8px; border: 1px solid #ccc; margin-bottom: 20px; }
+.grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(100px, 1fr)); gap: 15px; max-width: 800px; margin: 0 auto; }
+.card { background: white; padding: 15px; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); cursor: pointer; transition: 0.2s; }
+.card:hover { transform: scale(1.05); background: #eef; }
+.emoji { font-size: 32px; display: block; margin-bottom: 5px; }
+.tag { font-size: 12px; color: #666; text-transform: capitalize; }
+</style>
+</head>
+<body>
+
+<h1>✨ Emoji Sharer ✨</h1>
+<input type="text" id="search" placeholder="Search emojis (e.g., fire, cat, sad)..." onkeyup="searchEmojis()">
+
+<div class="grid" id="emojiGrid"></div>
+
+<script>
+// Your database: Add as many emojis and keywords as you want!
+const emojiDatabase = [
+{ char: "🔥", tags: "fire hot flame spark popular" },
+{ char: "🐱", tags: "cat animal pet kitten cute" },
+{ char: "🚀", tags: "rocket space fly fast ship" },
+{ char: "😭", tags: "cry sad tear weep emotion" },
+{ char: "🍕", tags: "pizza food cheese dinner fastfood" },
+{ char: "🎮", tags: "game controller play xbox playstation" }
+ ];
+
+function renderEmojis(data) {
+const grid = document.getElementById("emojiGrid");
+grid.innerHTML = data.map(item => &lt;div class="card" onclick="copyEmoji('${item.char}')">
+<span class="emoji">${item.char}&lt;/span&gt; &lt;span class="tag"&gt;${item.tags.split(' ')[0]}</span>
+</div>
+`).join('');
+}
+
+function searchEmojis() {
+const query = document.getElementById("search").value.toLowerCase();
+const filtered = emojiDatabase.filter(item => item.tags.includes(query));
+renderEmojis(filtered);
+}
+
+function copyEmoji(emoji) {
+navigator.clipboard.writeText(emoji);
+alert(Copied:${emoji}`);
+}
+
+// Initial load
+renderEmojis(emojiDatabase);
+</script>
+</body>
+</html>
