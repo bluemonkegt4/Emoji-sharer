@@ -3,7 +3,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Emoji Sharer Community</title>
+    <title>Community Emoji Sharer</title>
+    <!-- Supabase CDN Library -->
+    <script src="https://jsdelivr.net"></script>
     <style>
         body { font-family: sans-serif; text-align: center; background: #f4f4f9; padding: 20px; }
         .container { max-width: 600px; margin: 0 auto; background: white; padding: 20px; border-radius: 12px; box-shadow: 0 4px 10px rgba(0,0,0,0.05); margin-bottom: 30px; }
@@ -20,7 +22,7 @@
 </head>
 <body>
 
-    <h1>📱 Emoji Sharer 💬</h1>
+    <h1>✨ Community Emoji Sharer ✨</h1>
 
     <!-- Upload Form Panel -->
     <div class="container upload-form">
@@ -36,12 +38,30 @@
     <div class="grid" id="emojiGrid"></div>
 
     <script>
-        // Array to simulate storage until a backend script is linked
-        let localDatabase = [
-            { char: "🔥", tags: "fire hot flame popular" },
-            { char: "👁️👄👁️", tags: "face shock surprise meme" },
-            { char: "🐱", tags: "cat animal cute" }
-        ];
+        // REPLACE THIS URL with your actual Supabase Project URL from your project dashboard settings
+        const SUPABASE_URL = "https://supabase.co"; 
+        const SUPABASE_KEY = "sb_publishable_N40mY5ODGFD7yNgC7u1Xlw_5pI8rEJk";
+
+        // Connect client
+        const supabase = Supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+        let globalDatabase = [];
+
+        // Fetch saved emojis directly from your online cloud table
+        async function fetchEmojis() {
+            const { data, error } = await supabase
+                .from('emojis')
+                .select('*')
+                .order('created_at', { ascending: false });
+
+            if (error) {
+                console.error("Error reading database table:", error.message);
+                return;
+            }
+
+            globalDatabase = data;
+            renderEmojis(globalDatabase);
+        }
 
         function renderEmojis(data) {
             const grid = document.getElementById("emojiGrid");
@@ -53,7 +73,8 @@
             `).join('');
         }
 
-        function submitEmoji() {
+        // Save a permanent new submission item to the database table
+        async function submitEmoji() {
             const emojiInput = document.getElementById("newEmoji").value.trim();
             const tagsInput = document.getElementById("newTags").value.trim().toLowerCase();
 
@@ -62,22 +83,28 @@
                 return;
             }
 
-            // Add the new submission directly into our temporary database array
-            localDatabase.unshift({ char: emojiInput, tags: tagsInput });
-            
-            // Refresh screen view
-            renderEmojis(localDatabase);
+            const { data, error } = await supabase
+                .from('emojis')
+                .insert([{ char: emojiInput, tags: tagsInput }]);
 
-            // Clear inputs
+            if (error) {
+                alert("Database save failed: " + error.message);
+                console.error(error);
+                return;
+            }
+
+            // Clear input fields on success
             document.getElementById("newEmoji").value = "";
             document.getElementById("newTags").value = "";
             
-            alert("Success! Added to live view.");
+            // Reload feed content
+            fetchEmojis();
+            alert("Success! Your emoji has been shared globally.");
         }
 
         function searchEmojis() {
             const query = document.getElementById("search").value.toLowerCase();
-            const filtered = localDatabase.filter(item => item.tags.includes(query) || item.char.includes(query));
+            const filtered = globalDatabase.filter(item => item.tags.includes(query) || item.char.includes(query));
             renderEmojis(filtered);
         }
 
@@ -86,8 +113,8 @@
             alert(`Copied to clipboard: ${emoji}`);
         }
 
-        // Run application on start
-        renderEmojis(localDatabase);
+        // Run application setup
+        fetchEmojis();
     </script>
 </body>
 </html>
